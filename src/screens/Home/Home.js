@@ -35,26 +35,35 @@ export default class App extends Component {
         category: prevState.category.concat({
           title: categoryName,
           color: color,
-          tasks: 0
+          tasks: 0,
+          todos: []
         })
       }
     });
   }
 
+  updateCategory = (nC, index) => {
+    let category = [...this.state.category];
+    let c = {...category[index]};
+    c = nC;
+    category[index] = c;
+    this.setState({category});
+  }
+
   render() {
     const {navigate} = this.props.navigation
     const categories = this.state.category.map((c, i) => {
-     return (
+      return (
         <Category 
           key={i}
-          onItemPressed={() => navigate('TodoView', {title: c.title, color: c.color, tasks: c.tasks})}
+          onItemPressed={() => navigate('TodoView', {key: i, category: {c}, updateCategory: this.updateCategory.bind(this)})}
+          tasks={c.tasks}
           color={c.color}
           title={c.title}
-          tasks={c.tasks}
           size={20}
           thk={4}
         />
-     )
+      )
     });
     return (
     <ScrollView contentContainerStyle={styles.container}>

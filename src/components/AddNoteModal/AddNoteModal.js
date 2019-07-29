@@ -21,12 +21,12 @@ export class Home extends Component {
     });
   }
 
-  categorySubmitHandler = () => {
+  categorySubmitHandler = async () => {
     if (this.state.title.trim() === '' || this.state.color.trim() === '') {
       return;
     }
-    
-    this.props.onAddedCategory(this.state.title, this.state.color);
+    let title = await this.state.title;
+    this.props.onAddedCategory(title, this.state.color);
     this.setState({title: '', color: ''});
     this.props.closeModal();
   }

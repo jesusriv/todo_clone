@@ -10,27 +10,35 @@ export class TodoView extends Component {
   }
 
   state = {
-    todo: []
+    key: this.props.navigation.getParam('key')
+  }
+
+  componentWillMount = () => {
+    const { navigation } = this.props;
+    const category = navigation.getParam('category');
+    this.setState({category: category['c']});
   }
 
   returnData = todo => {
-    this.setState(prevState => {
-      return {
-        todo: prevState.todo.concat({
-          todo: todo,
-          completed: false
-        })
-      }
-    });
+    let category = this.state.category;
+    category.todos = [...category.todos, {todo}]
+    category.tasks++;
+    this.setState({category});
+  }
+  
+  toggleComplete = (i) => {
+    let category = this.state.category;
+    let todo = category.todos[i];
+    todo.completed = !todo.completed;
+    category.todos[i] = todo;
+    todo.completed ? category.tasks-- : category.tasks++
+    this.setState({category});
   }
 
   render () {
     const { navigate } = this.props.navigation;
     const { navigation } = this.props;
-    const title = navigation.getParam('title');
-    const tasks = navigation.getParam('tasks');
-    const color = navigation.getParam('color');
-    const todos = this.state.todo.map((t, i) => {
+    const todos = this.state.category['todos'].map((t, i) => {
       return (
         <View
           key={i} 
@@ -43,15 +51,13 @@ export class TodoView extends Component {
             }}>
           <TouchableOpacity 
             style={{width: 60, alignItems: 'center', justifyContent: 'center'}} 
-            onPress={() => { 
-                t.completed = !t.completed
-              }}
+            onPress={() => this.toggleComplete(i)}
           >
             {
               t.completed ? 
               <Icon 
                 name="ios-checkmark"
-                style={{fontSize: 38, marginTop: 5}}
+                style={{fontSize: 38, marginTop: 5, color: '#e8e8e8'}}
               /> :
               <Icon
                 name="ios-remove"
@@ -59,7 +65,13 @@ export class TodoView extends Component {
               />
             }
           </TouchableOpacity>
-          <Text key={i} style={{fontSize: 20}}>{t.todo}</Text>
+          {
+            t.completed ?
+            <Text key={i} style={{fontSize: 20, color: '#e8e8e8'}}>{t.todo}</Text>
+            :
+            <Text key={i} style={{fontSize: 20}}>{t.todo}</Text>
+          }
+          
         </View>
       );
     }); 
@@ -67,7 +79,11 @@ export class TodoView extends Component {
       <View style={styles.container}>
         <View style={styles.top}>
           <IconBtn 
-            onItemPressed={() => navigation.goBack()}
+            onItemPressed={() => {
+                navigation.state.params.updateCategory(this.state.category, this.state.key);
+                navigation.goBack();
+              } 
+            }
             name="ios-arrow-round-back"
             size={28}
           />
@@ -79,17 +95,17 @@ export class TodoView extends Component {
         <View style={styles.topContainer}>
           <View style={styles.circleContainer}>
             <Circle 
-              color={color} 
+              color={this.state.category['color']} 
               size={27}
               thk={6}
             />
           </View>
           <View style={styles.titleContainer}>
             <View>
-              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.title}>{this.state.category['title']}</Text>
             </View>
             <View>
-              <Text style={styles.tasks}>{tasks} tasks</Text>
+              <Text style={styles.tasks}>{this.state.category['tasks']} tasks</Text>
             </View>
           </View>
         </View>
@@ -108,11 +124,11 @@ export class TodoView extends Component {
               marginTop: 640
             }
           }
-          onPress={() => navigate("AddTodo", {color, returnData: this.returnData.bind(this)})}
+          onPress={() => navigate("AddTodo", {color: this.state.category['color'], returnData: this.returnData.bind(this)})}
         >
           <View 
             style={{
-              backgroundColor: color, 
+              backgroundColor: this.state.category['color'], 
               width: "100%", 
               height: "100%",
               borderBottomLeftRadius: 8,
